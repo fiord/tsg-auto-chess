@@ -5,7 +5,7 @@
 DOTA AUTO CHESSはご存知でしょうか？これを題材にしたゲームです。
 15x15の盤面上で行います。最初、盤面上には各プレイヤーのキングが両端（相手のキングは奥側、自分のキングは手前側）の中央のマスにいます。また、所持金が5goldあります。
 
-毎ターンの初めにお金が貰えるので、やりくりしてユニットを購入したり自分のレベルを上げたりして、相手のキングのHPを0にしたら勝利です。同時にHPが0になった場合は引き分けです。1000ターン行って勝敗がつかなかった場合、キングの残りHPが多いほうが勝利。HPが同じなら引き分けとします。
+毎ターンの初めにお金が貰えるので、やりくりしてユニットを購入したり自分のレベルを上げたりして、相手のキングのHPを0にしたら勝利です。同時にHPが0になった場合は引き分けです。1000ターン行って勝敗がつかなかった場合、キングの残りHPが多いほうが勝利。HPが同じなら引き分けとします。なお、時間切れとキングの死亡が同ターンにて行われた際も引き分けとします。
 
 ### ユニットについて
 ユニットには以下のパラメータが存在します。
@@ -13,7 +13,7 @@ DOTA AUTO CHESSはご存知でしょうか？これを題材にしたゲーム�
 * ATK…ユニットの攻撃力。ユニットによって初期値が違います。毎ターン攻撃によりATKのダメージを相手に与えます。evolveにより強化が可能です。
 * TYPE…ユニットの属性です。ASSASSIN、WARRIOR、MAGEの3種類です。
   * ASSASSIN、WARRIOR、MAGEは3すくみになっていて、ASSASSIN→WARRIORへの攻撃はダメージが半減し、ASSASSIN→MAGEへの攻撃は2倍になります(後は察せ)
-  * また、属性毎に特徴があります。詳細は後述。
+  * また、属性毎に特徴があります。詳細は後述。 
     * ASSASSIN…単純に攻撃力が高い
     * WARRIOR…単純にHPが高い
     * MAGE…攻撃力もHPもそれほど高くありませんが、攻撃範囲が広いです。
@@ -45,7 +45,7 @@ goldを消費してユニットを購入します。購入したユニットは�
 
 倉庫に入れることでユニットの退避&evolveが可能になるので、積極的に使いましょう。
 
-なお、ユニットを盤面に置く際は「キングからのマンハッタン距離が5以内の何も無いマス」が条件です。また、盤面に出てきたユニットはそのターン移動及び攻撃が出来ません。ご注意ください。
+なお、ユニットを盤面に置く際は「キングからのチェビシェフ距離が3以内の何も無いマス」が条件です。また、盤面に出てきたユニットはそのターン移動及び攻撃が出来ません。ご注意ください。
 
 #### evolve
 AUTO CHESSにおける強力なシステムの一つ。倉庫内にある同属性のユニットを3体選び、それらを消費して1番ランクの高いユニットのランク+1のランクを持つユニットを1体得ることが出来ます。
@@ -135,9 +135,9 @@ turn
 time_left
 level_a level_b
 gold_a gold_b
-unitSellID_1 unitSellTYPE_1 unitSellHP_1 unitSellATK_1
-unitSellID_2 unitSellTYPE_2 unitSellHP_2 unitSellATK_2
-unitSellID_3 unitSellTYPE_3 unitSellHP_3 unitSellATK_3
+unitSellID_1 unitSellTYPE_1 unitSellHP_1 unitSellATK_1 unitSellVal_1
+unitSellID_2 unitSellTYPE_2 unitSellHP_2 unitSellATK_2 unitSellVal_2
+unitSellID_3 unitSellTYPE_3 unitSellHP_3 unitSellATK_3 unitSellVal_3
 N
 unitID_1 unitTYPE_1 unitHP_1 unitATK_1 unitX_1 unitY_1
 unitID_2 unitTYPE_2 unitHP_2 unitATK_2 unitX_2 unitY_2
@@ -153,7 +153,7 @@ turnは現在のターン数です。
 time_leftは残りの思考時間です。
 level_aは自分のレベル、level_bは相手のレベルです。
 gold_aは自分のgold、gold_bは相手のgoldです。
-続く3行に販売されているunitの情報が出ます。TYPEは"WARRIOR"、"ASSASSIN"、"MAGE"、"KING"のどれかです。
+続く3行に販売されているunitの情報が出ます。TYPEは"WARRIOR"、"ASSASSIN"、"MAGE"、"KING"のどれかです。unitSellValは販売goldです。
 次の行に自分のユニットの個数Nが与えられ、N行に渡り各行1ユニットの情報が与えられます。
 次の行に自分のユニットの個数Mが与えられ、M行に渡り各行1ユニットの情報が与えられます。
 
@@ -161,10 +161,11 @@ gold_aは自分のgold、gold_bは相手のgoldです。
 ```
 0
 180000
+1 1
 5 5
-2 WARRIOR 50 10
-3 MAGE 15 5
-4 ASSASSIN 20 20
+2 WARRIOR 50 10 3
+3 MAGE 15 5 3
+4 ASSASSIN 20 20 3
 1
 0 KING 100 20 7 0
 1
