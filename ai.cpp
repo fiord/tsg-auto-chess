@@ -78,7 +78,7 @@ Units getUnit() {
 }
 
 int main() {
-    srand((unsigned)time(NULL));
+    random_device rnd;
     cout<<"Sample_AI"<<endl;
     int turn = 0;
     while(++turn < MAX_TURN) {
@@ -101,12 +101,12 @@ int main() {
             Enemy[i] = getUnit();
         }
 
-        int command_num = rand()%5;
+        int command_num = rnd()%5;
         if(command_num == 0) {
             cout<<"reset WARRIOR ASSASSIN MAGE"<<endl;
         }
         else if(command_num == 1) {
-            int selected = rand()%3;
+            int selected = rnd()%3;
             cout<<"buy "<<shop[selected].id<<endl;
         }
         else if(command_num == 2) {
@@ -115,9 +115,9 @@ int main() {
                 if(Align[i].x==-1) targets.push_back(i);
             }
             if(targets.size()>0) {
-                int target = rand()%targets.size();
-                int tx = Align[0].x + (rand()%7)-3;
-                int ty = Align[0].y + (rand()%7)-3;
+                int target = rnd()%targets.size();
+                int tx = Align[0].x + (rnd()%7)-3;
+                int ty = Align[0].y + (rnd()%7)-3;
                 cout<<"move "<<Align[targets[target]].id<<" "<<tx<<" "<<ty<<endl;
             }
             else {
@@ -148,8 +148,8 @@ int main() {
         vector<string> out;
         for(int i = 0; i < Align.size(); i++) {
             if(Align[i].x != -1) {
-                int dir = rand()%8;
-                out.push_back(to_string(Align[i].id) + " " + to_string(Align[i].x + dx[dir]) + " " + to_string(Align[i].y + dy[dir]));\
+                int dir = rnd()%8;
+                out.push_back(to_string(Align[i].id) + " " + to_string(Align[i].x + dx[dir]) + " " + to_string(Align[i].y + dy[dir]));
             }
         }
         cout<<out.size()<<endl;

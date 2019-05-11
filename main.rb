@@ -62,7 +62,7 @@ class Unit
   def print(team)
     y = @y
     x = @x
-    if (team) then
+    if (team && x != -1) then
       x = $W -1 - x
       y = $H -1 - y
     end
@@ -158,7 +158,7 @@ class Game
               for j in 0...n do
                 id, x, y = @stdouts[i].gets.chomp.split(" ").map(&:to_i)
                 puts "out:#{id} #{x} #{y}"
-                if (i)
+                if (i && x != -1)
                   x = $W -1 - x
                   y = $H -1 - y
                 end
@@ -171,6 +171,7 @@ class Game
           end
 
           # commandの処理
+          ignore_list = []
           for i in 0..1 do
             list = @output[i]["command"].chomp.split(" ")
             if (list.length == 0)
@@ -201,7 +202,7 @@ class Game
               id = list[1].to_i
               y = list[2].to_i
               x = list[3].to_i
-              if (i)
+              if (i && x != -1)
                 x = $W -1 - x
                 y = $H -1 - y
               end
@@ -214,13 +215,14 @@ class Game
               end
               if (!unit.nil?)
                 if (0<=x&&x<$W&&0<=y&&y<$H&&@field[y][x].nil?)
-                  if (unit.x==-1&&unit.y===1 && @players[i].field_num < 2 + @players[i].level)
+                  if (unit.x==-1&&unit.y==1 && @players[i].field_num < 2 + @players[i].level)
                     king = @players[i].units[0]
                     if [(king.x-x).abs,(king.y-y).abs].max<=3
                       unit.x = x
                       unit.y = y
                       @field[y][x] = unit
                       @players[i].field_num += 1
+                      ignore_list.push(unit)
                     end
                   end
                 elsif (x==-1&&y==-1&&unit.x>=0&&unit.TYPE != "KING")
@@ -283,7 +285,7 @@ class Game
             for j in 0...@players[move_dat[i]["team"]].units.length do
               unit = @players[move_dat[i]["team"]].units[j]
               if (unit.ID == move_dat[i]["id"])
-                if (unit.x > 0)
+                if (unit.x > 0 && ignore_list.include?(unit))
                   dist = [(unit.x - move_dat[i]["x"]).abs, (unit.y - move_dat[i]["y"]).abs].max
                   if (dist == 1 && @field[move_dat[i]["y"]][move_dat[i]["x"]].nil?)
                     @field[unit.y][unit.x] = nil
@@ -300,7 +302,7 @@ class Game
           # attackの処理
           for i in 0...$H do
             for j in 0...$W do
-              if @field[i][j].nil?
+              if @field[i][j].nil? || ignore_list.include?(@field[i][j])
                 next
               end
               if ["KING", "MAGE"].include?(@field[i][j].TYPE)
@@ -401,9 +403,10 @@ class Game
     end
     # jsonへ出力
     p @result
-    filename = "log/" + (DateTime.now).strftime("%Y%m%d%H%M%S")+"-#{@names[0]}-#{@names[1]}.json"
+    filename = "visualizer/log/" + (DateTime.now).strftime("%Y%m%d%H%M%S")+"-#{@names[0]}-#{@names[1]}.json"
     open(filename, "w") do |file|
       file.puts "#{@names[0]} #{@names[1]}"
+      file.puts "#{@result[0]} #{@result[1]}"
       for i in 0...@dump_data.length
         # turn
         file.puts i
@@ -416,7 +419,7 @@ class Game
         # shop
         for j in 0..1 do
           for k in 0...3 do
-            file.puts @dump_data[i][j].shop[j].shopStr
+            file.puts @dump_data[i][j].shop[k].shopStr
           end
         end
         # units
