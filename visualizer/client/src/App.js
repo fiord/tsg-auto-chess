@@ -96,7 +96,7 @@ class App extends React.Component {
 
     console.log(`turn=${i}`);
     console.log(this.state);
-    if(i + 1 === 50) {
+    if(i + 1 === this.state.data.length) {
       let timer = this.state.timer;
       clearInterval(timer);
       this.setState({timer});
@@ -123,12 +123,27 @@ class App extends React.Component {
         </Form>
         <p>Turn: {this.state.turn}</p>
         <div>
-          <font color="red">{this.state.result[0]} {this.state.name[0]} {this.state.hp[0]} {this.state.level[0]} {this.state.gold[0]}</font>
+          <font color="red">Died:{this.state.result[0]} Name:{this.state.name[0]} 残り時間:{Math.floor(this.state.left_time[0])} King'sHP:{this.state.hp[0]} Level:{this.state.level[0]} Gold:{this.state.gold[0]}</font>
           <ul key={"shop-player_a"}>
-            {this.state.shop[0].map((obj, i) => (<li key={"shop-player_a-"+i}>{obj.type}</li>))}
+            {this.state.shop[0].map((obj, i) => (<li key={"shop-player_a-"+i} style={{border: "solid"}}>
+              <center>
+              <div class="circle" style={{borderRadius: "50%", height: "50px", width: "50px", backgroundColor: (obj.type==="WARRIOR"?"cyan":(obj.type==="MAGE"?"yellow":"magenta")), border: "solid red"}}>
+                {obj.hp}/{obj.atk}
+              </div>
+              <p style={{margin: 0}}>{obj.type}</p>
+              <p style={{margin: 0}}>$ {obj.val}</p>
+              </center>
+            </li>))}
           </ul>
           <ul key={"ware-player_a"}>
-            {this.state.warehouse[0].map((obj, i) => (<li key={"ware-player_a-"+i}>{obj.type}</li>))}
+            {this.state.warehouse[0].map((obj, i) => (<li key={"ware-player_a-"+i} style={{border: "solid"}}>
+              <center>
+              <div class="circle" style={{borderRadius: "50%", height: "50px", width: "50px", backgroundColor: (obj.type==="WARRIOR"?"cyan":(obj.type==="MAGE"?"yellow":"magenta")), border:"solid red"}}>
+                {obj.hp}/{obj.atk}
+              </div>
+              <p style={{margin: 0}}>{obj.type}</p>
+              </center>
+              </li>))}
           </ul>
         </div>
         <div>
@@ -142,7 +157,10 @@ class App extends React.Component {
                     return (<td key={"field_"+i+"-"+j}><div></div></td>);
                   }
                   else {
-                    return (<td key={"field_"+i+"-"+j}><div><font color={this.state.field[i][j].team ? "red": "blue"}>{this.state.field[i][j].type}</font></div></td>);
+                    return (<td key={"field_"+i+"-"+j}>
+                      <div class="circle" style={{borderRadius: "50%", height: "50px", width: "50px", backgroundColor: (this.state.field[i][j].type==="WARRIOR"?"cyan":(this.state.field[i][j].type==="MAGE"?"yellow":(this.state.field[i][j].type==="ASSASSIN"?"magenta":"gold"))), border: (this.state.field[i][j].team==0 ? "solid red" : "solid blue")}}>
+                        {this.state.field[i][j].hp}/{this.state.field[i][j].atk}
+                      </div></td>);
                   }
                 })}
               </tr>
@@ -152,14 +170,29 @@ class App extends React.Component {
           </table>
         </div>
         <div>
-          <font color="blue">{this.state.result[1]} {this.state.name[1]} {this.state.hp[1]} {this.state.level[1]} {this.state.gold[1]}</font>
+          <font color="blue">Died:{this.state.result[1]} Name:{this.state.name[1]} 残り時間:{Math.floor(this.state.left_time[1])} King'sHP:{this.state.hp[1]} Level:{this.state.level[1]} Gold:{this.state.gold[1]}</font>
           <ul key="ul-player_b">
           {this.state.shop[1].map((obj, i) => {
-            return (<li key={"shopplayer_b"+i}>{obj.type}</li>);
+            return (<li key={"shopplayer_b"+i} style={{border: "solid"}}>
+              <center>
+              <div class="circle" style={{borderRadius: "50%", height: "50px", width: "50px", backgroundColor: (obj.type==="WARRIOR"?"cyan":(obj.type==="MAGE"?"yellow":"magenta")), border: "solid blue"}}>
+                {obj.hp}/{obj.atk}
+              </div>
+              <p style={{margin: 0}}>{obj.type}</p>
+              <p style={{margin: 0}}>$ {obj.val}</p>
+              </center>
+            </li>);
           })}
           </ul>
           <ul key="ware-player_b">
-            {this.state.warehouse[1].map((obj, i) => (<li key={"ware-player_b-"+i}>{obj.type}</li>))}
+            {this.state.warehouse[1].map((obj, i) => (<li key={"ware-player_b-"+i} style={{border: "solid"}}>
+              <center>
+              <div class="circle" style={{borderRadius: "50%", height: "50px", width: "50px", backgroundColor: (obj.type==="WARRIOR"?"cyan":(obj.type==="MAGE"?"yellow":"magenta")), border: "solid blue"}}>
+                {obj.hp}/{obj.atk}
+              </div>
+              <p style={{margin: 0}}>{obj.type}</p>
+              </center>
+              </li>))}
           </ul>
         </div>
       </Container>

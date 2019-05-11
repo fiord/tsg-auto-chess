@@ -40,13 +40,20 @@ tr {
 }
 td {
   margin: 0;
-  height: 50px;
-  width: 50px;
+  height: 80px;
+  width: 80px;
   border: solid 1px;
+  display: table-cell;
+  text-align: center;
 }
 ul {
   overflow-x: auto;
 }
 li {
   display: table-cell;
+}
+.circle {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
 }
