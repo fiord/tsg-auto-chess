@@ -62,9 +62,9 @@ class Unit
   def print(team)
     y = @y
     x = @x
-    if (team && x != -1) then
-      x = $W -1 - x
-      y = $H -1 - y
+    if (team && x != -1 && false) then
+      x = $W - 1 - x
+      y = $H - 1 - y
     end
     return "#{@ID} #{@TYPE} #{@hp} #{@atk} #{x} #{y}"
   end
@@ -146,8 +146,8 @@ class Game
               @stdins[i].puts @players[i ^ 1].units.length
               puts "in:#{@players[i ^ 1].units.length}"
               for j in 0...@players[i ^ 1].units.length do
-                @stdins[i].puts @players[i ^ 1].units[j].print(i)
-                puts "in:#{@players[i ^ 1].units[j].print(i)}"
+                @stdins[i].puts @players[i ^ 1].units[j].print(false)
+                puts "in:#{@players[i ^ 1].units[j].print(false)}"
               end
               #output
               command = @stdouts[i].gets.chomp
@@ -158,9 +158,9 @@ class Game
               for j in 0...n do
                 id, x, y = @stdouts[i].gets.chomp.split(" ").map(&:to_i)
                 puts "out:#{id} #{x} #{y}"
-                if (i && x != -1)
-                  x = $W -1 - x
-                  y = $H -1 - y
+                if (i && x != -1 && false)
+                  x = $W - 1 - x
+                  y = $H - 1 - y
                 end
                 dat[j] = {"id"=>id, "x"=>x, "y"=>y, "team"=>i}
               end
@@ -200,11 +200,11 @@ class Game
               end
             elsif (list[0] == "move" && list.length == 4)
               id = list[1].to_i
-              y = list[2].to_i
-              x = list[3].to_i
-              if (i && x != -1)
-                x = $W -1 - x
-                y = $H -1 - y
+              x = list[2].to_i
+              y = list[3].to_i
+              if (i && x != -1 && false)
+                x = $W - 1 - x
+                y = $H - 1 - y
               end
               unit = nil
               for j in 0...@players[i].units.length do
@@ -215,10 +215,10 @@ class Game
               end
               if (!unit.nil?)
                 if (0<=x&&x<$W&&0<=y&&y<$H&&@field[y][x].nil?)
-                  if (unit.x==-1&&unit.y==1 && @players[i].field_num < 2 + @players[i].level)
+                  if (unit.x==-1&&unit.y==-1 && @players[i].field_num < 2 + @players[i].level)
                     king = @players[i].units[0]
                     if [(king.x-x).abs,(king.y-y).abs].max<=3
-                      unit.x = x
+                     unit.x = x
                       unit.y = y
                       @field[y][x] = unit
                       @players[i].field_num += 1
@@ -275,6 +275,14 @@ class Game
           end
 
           # moveの処理
+          # @field = Array.new($H).map{Array.new($W).fill(nil)}
+          # for i in 0..1 do
+          #   for j in 0...@players[i].units.length do
+          #    if @players[i].units[j].x != -1
+          #      @field[@players[i].units[j].y][@players[i].units[j].x] = @players[i].units[j]
+          #    end
+          #  end
+          #end
           move_dat = @output[0]["dat"] + @output[1]["dat"]
           move_dat.sort_by! {|a| a["id"]}
           for i in 0...move_dat.length do
@@ -285,13 +293,13 @@ class Game
             for j in 0...@players[move_dat[i]["team"]].units.length do
               unit = @players[move_dat[i]["team"]].units[j]
               if (unit.ID == move_dat[i]["id"])
-                if (unit.x > 0 && ignore_list.include?(unit))
+                if (unit.x != -1 && !ignore_list.include?(unit))
                   dist = [(unit.x - move_dat[i]["x"]).abs, (unit.y - move_dat[i]["y"]).abs].max
                   if (dist == 1 && @field[move_dat[i]["y"]][move_dat[i]["x"]].nil?)
                     @field[unit.y][unit.x] = nil
                     unit.x = move_dat[i]["x"]
                     unit.y = move_dat[i]["y"]
-                    @field[unit.y][unit.x] = nil
+                    @field[unit.y][unit.x] = unit
                     break
                   end
                 end
@@ -311,7 +319,7 @@ class Game
                     next
                   end
                   for tx in j-3..j+3 do
-                    if tx<0 || ty>=$W
+                    if tx<0 || tx>=$W
                       next
                     end
                     if (@field[ty][tx].nil? || @field[ty][tx].TEAM == @field[i][j].TEAM)
@@ -333,6 +341,9 @@ class Game
               else
                 for ty in i-1..i+1 do
                   for tx in j-1..j+1 do
+                    if ty < 0 || ty >= $H || tx < 0 || tx >= $W
+                      next
+                    end
                     if (@field[ty][tx].nil? || @field[ty][tx].TEAM == @field[i][j].TEAM)
                       next
                     end
@@ -349,6 +360,8 @@ class Game
                         @field[ty][tx].hp -= @field[i][j].atk * 2
                       elsif @field[ty][tx].TYPE == "MAGE"
                         @field[ty][tx].hp -= (@field[i][j].atk / 2.0).ceil
+                      else
+                        @field[ty][tx].hp -= @field[i][j].atk
                       end
                     end
                   end
@@ -361,7 +374,7 @@ class Game
           dead = [false, false]
           for i in 0..1 do
             @players[i^1].kill = 0
-            for j in 0...@players[i].units.length do
+            (@players[i].units.length-1).downto(0){|j|
               if @players[i].units[j].hp <= 0
                 if @players[i].units[j].TYPE == "KING"
                   dead[i] = true
@@ -370,7 +383,7 @@ class Game
                 j -= 1
                 @players[i^1].kill += 1
               end
-            end
+            }
           end
 
           # finish判定(TODO)
@@ -401,6 +414,7 @@ class Game
         end
       end
     end
+    @dump_data.push(Marshal.load(Marshal.dump(@players)))
     # jsonへ出力
     p @result
     filename = "visualizer/log/" + (DateTime.now).strftime("%Y%m%d%H%M%S")+"-#{@names[0]}-#{@names[1]}.json"

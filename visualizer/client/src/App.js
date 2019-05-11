@@ -8,19 +8,16 @@ import {
   } from 'reactstrap';
 import './App.css';
 
-var field = new Array(15);
-for(let i = 0; i < 15; i++) {
-  field[i] = new Array(15).fill(null);
-}
-var shops = [[], []]
-var warehouse = [[], []]
-
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.fetchData = this.fetchData.bind(this);
     this.onChangeSelect = this.onChangeSelect.bind(this);
     this.updateField = this.updateField.bind(this);
+    let field = new Array(15);
+    for(let i = 0; i < 15; i++) {
+      field[i] = new Array(15).fill(null);
+    }
     this.state = {
       filename: "",
       filelist: [],
@@ -66,8 +63,8 @@ class App extends React.Component {
     console.log(this.state);
     // this.state.turnを表示
     let i = this.state.turn;
-    field = JSON.parse(this.state.default_field);
-    warehouse = [[], []];
+    let field = JSON.parse(this.state.default_field);
+    let warehouse = [[], []];
     for(let j = 0; j < 2; j++) {
       for(let k = 0; k < this.state.data[i].units[j].length; k++) {
         if (this.state.data[i].units[j][k].x == -1) {
@@ -91,9 +88,11 @@ class App extends React.Component {
     console.log(this.state.data[i].golds);
     this.setState({gold: this.state.data[i].golds});
     console.log(this.state.data[i].shops);
-    shops = this.state.data[i].shops;
+    this.setState({shop: this.state.data[i].shops});
     console.log(field);
+    this.setState({field});
     console.log(warehouse);
+    this.setState({warehouse});
 
     console.log(`turn=${i}`);
     console.log(this.state);
@@ -115,9 +114,9 @@ class App extends React.Component {
           <FormGroup>
             <Label for="filenames">filename:</Label>
             <Input type="select" name="select" id="filenames" onChange={this.onChangeSelect} value={this.state.filename}>
-              <option></option>
+              <option key={"no file"}></option>
               {this.state.filelist.map((file) => {
-                return (<option>{file}</option>);
+                return (<option key={file}>{file}</option>);
               })}
             </Input>
           </FormGroup>
@@ -125,37 +124,42 @@ class App extends React.Component {
         <p>Turn: {this.state.turn}</p>
         <div>
           <font color="red">{this.state.result[0]} {this.state.name[0]} {this.state.hp[0]} {this.state.level[0]} {this.state.gold[0]}</font>
-          <ul>
-            {[...Array(3).keys()].map((i) => {
-              // this.state.shop[0][i]
-              return (<li>{shops[0][i]}</li>);
-            })}
+          <ul key={"shop-player_a"}>
+            {this.state.shop[0].map((obj, i) => (<li key={"shop-player_a-"+i}>{obj.type}</li>))}
+          </ul>
+          <ul key={"ware-player_a"}>
+            {this.state.warehouse[0].map((obj, i) => (<li key={"ware-player_a-"+i}>{obj.type}</li>))}
           </ul>
         </div>
         <div>
           <table>
+          <tbody>
           {[...Array(15).keys()].map((i) => {
             return (
-              <tr>
+              <tr key={"fieldrow_"+i}>
                 {[...Array(15).keys()].map((j) => {
-                  if(field[i][j] === null) {
-                    return (<td><div></div></td>);
+                  if(this.state.field[i][j] === null) {
+                    return (<td key={"field_"+i+"-"+j}><div></div></td>);
                   }
                   else {
-                    return (<td><div>{field[i][j]}</div></td>);
+                    return (<td key={"field_"+i+"-"+j}><div><font color={this.state.field[i][j].team ? "red": "blue"}>{this.state.field[i][j].type}</font></div></td>);
                   }
                 })}
               </tr>
             );
           })}
+          </tbody>
           </table>
         </div>
         <div>
           <font color="blue">{this.state.result[1]} {this.state.name[1]} {this.state.hp[1]} {this.state.level[1]} {this.state.gold[1]}</font>
-          <ul>
-          {[...Array(3).keys()].map((i) => {
-            return (<li>{shops[1][i]}</li>);
+          <ul key="ul-player_b">
+          {this.state.shop[1].map((obj, i) => {
+            return (<li key={"shopplayer_b"+i}>{obj.type}</li>);
           })}
+          </ul>
+          <ul key="ware-player_b">
+            {this.state.warehouse[1].map((obj, i) => (<li key={"ware-player_b-"+i}>{obj.type}</li>))}
           </ul>
         </div>
       </Container>
