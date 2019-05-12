@@ -62,7 +62,7 @@ class Unit
   def print(team)
     y = @y
     x = @x
-    if (team && x != -1 && false) then
+    if (team == 1 && x != -1) then
       x = $W - 1 - x
       y = $H - 1 - y
     end
@@ -146,8 +146,8 @@ class Game
               @stdins[i].puts @players[i ^ 1].units.length
               puts "in:#{@players[i ^ 1].units.length}"
               for j in 0...@players[i ^ 1].units.length do
-                @stdins[i].puts @players[i ^ 1].units[j].print(false)
-                puts "in:#{@players[i ^ 1].units[j].print(false)}"
+                @stdins[i].puts @players[i ^ 1].units[j].print(i)
+                puts "in:#{@players[i ^ 1].units[j].print(i)}"
               end
               #output
               command = @stdouts[i].gets.chomp
@@ -158,7 +158,7 @@ class Game
               for j in 0...n do
                 id, x, y = @stdouts[i].gets.chomp.split(" ").map(&:to_i)
                 puts "out:#{id} #{x} #{y}"
-                if (i && x != -1 && false)
+                if (i == 1 && x != -1)
                   x = $W - 1 - x
                   y = $H - 1 - y
                 end
@@ -202,7 +202,7 @@ class Game
               id = list[1].to_i
               x = list[2].to_i
               y = list[3].to_i
-              if (i && x != -1 && false)
+              if (i == 1 && x != -1)
                 x = $W - 1 - x
                 y = $H - 1 - y
               end
