@@ -92,7 +92,7 @@ class Game
         for turn in 0...$MAX_TURNS do
           # gold処理
           for i in 0..1 do
-            @players[i].gold += 1 + [5, (@players[i].gold / 10.0).floor].max + @players[i].kill
+            @players[i].gold += 1 + [5, (@players[i].gold / 10.0).floor].min + @players[i].kill
           end
 
           # dump
