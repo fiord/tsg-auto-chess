@@ -137,7 +137,7 @@ class App extends React.Component {
                   }
                   else {
                     return (<td key={"field_"+i+"-"+j}>
-                      <div className="circle" style={{borderRadius: "50%", height: "50px", width: "50px", backgroundColor: (this.state.field[i][j].type==="WARRIOR"?"cyan":(this.state.field[i][j].type==="MAGE"?"yellow":(this.state.field[i][j].type==="ASSASSIN"?"magenta":"gold"))), border: (this.state.field[i][j].team==0 ? "solid red" : "solid blue")}}>
+                      <div className="circle" style={{borderRadius: (this.state.field[i][j].team==0 ? "50%" : "0%"), height: "50px", width: "50px", backgroundColor: (this.state.field[i][j].type==="WARRIOR"?"cyan":(this.state.field[i][j].type==="MAGE"?"yellow":(this.state.field[i][j].type==="ASSASSIN"?"magenta":"gold"))), border: (this.state.field[i][j].team==0 ? "solid red" : "solid blue")}}>
                         {this.state.field[i][j].hp}/{this.state.field[i][j].atk}
                       </div></td>);
                   }
@@ -158,7 +158,7 @@ class App extends React.Component {
           {this.state.shop[1].map((obj, i) => {
             return (<li key={"shopplayer_b"+i} style={{border: "solid"}}>
               <center>
-              <div className="circle" style={{borderRadius: "50%", height: "50px", width: "50px", backgroundColor: (obj.type==="WARRIOR"?"cyan":(obj.type==="MAGE"?"yellow":"magenta")), border: "solid blue"}}>
+              <div className="circle" style={{height: "50px", width: "50px", backgroundColor: (obj.type==="WARRIOR"?"cyan":(obj.type==="MAGE"?"yellow":"magenta")), border: "solid blue"}}>
                 {obj.hp}/{obj.atk}
               </div>
               <p style={{margin: 0}}>{obj.type}</p>
