@@ -79,7 +79,7 @@ Units getUnit() {
 
 int main() {
     random_device rnd;
-    cout<<"Sample_AI"<<endl;
+    cout<<"Sample_AI2"<<endl;
     int turn = 0;
     while(++turn < MAX_TURN) {
         cin >> turn;
@@ -103,33 +103,17 @@ int main() {
 
         int command_num = rnd()%5;
         if(command_num == 0) {
-            cout<<"reset WARRIOR ASSASSIN MAGE"<<endl;
+            int selected = rnd()%3;
+            int tx = Align[0].x + (rnd()%7)-3;
+            int ty = Align[0].y + (rnd()%7)-3;
+            cout<<"buy "<<shop[selected].id<<" "<<tx<<" "<<ty<<endl;
         }
         else if(command_num == 1) {
-            int selected = rnd()%3;
-            cout<<"buy "<<shop[selected].id<<endl;
-        }
-        else if(command_num == 2) {
-            vector<int> targets;
-            for(int i = 0; i < Align.size(); i++) {
-                if(Align[i].x==-1) targets.push_back(i);
-            }
-            if(targets.size()>0) {
-                int target = rnd()%targets.size();
-                int tx = Align[0].x + (rnd()%7)-3;
-                int ty = Align[0].y + (rnd()%7)-3;
-                cout<<"move "<<Align[targets[target]].id<<" "<<tx<<" "<<ty<<endl;
-            }
-            else {
-                cout<<"nop"<<endl;
-            }
-        }
-        else if(command_num == 3) {
             vector<vector<int>> memo(4, vector<int>());
             for(int i = 0 ; i < Align.size(); i++){
-                if(Align[i].x == -1)    memo[Align[i].type].push_back(i);
+                memo[Align[i].type].push_back(i);
             }
-            bool nop = true;;
+            bool nop = true;
             for(int i = 1; i <= 3; i++) {
                 if(memo[i].size() >= 3) {
                     cout<<"evolve "<<Align[memo[i][0]].id<<" "<<Align[memo[i][1]].id<<" "<<Align[memo[i][2]].id<<endl;
@@ -141,8 +125,11 @@ int main() {
                 cout<<"nop"<<endl;
             }
         }
-        else if(command_num == 4) {
-            cout<<"levelup"<<endl;
+        else if(command_num == 2) {
+          cout<<"levelup"<<endl;
+        }
+        else {
+          cout<<"nop"<<endl;
         }
 
         vector<string> out;
@@ -157,4 +144,5 @@ int main() {
             cout<<out[i]<<endl;
         }
     }
+    return 0;
 }

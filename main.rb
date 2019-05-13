@@ -4,8 +4,8 @@ require 'json'
 require 'benchmark'
 
 $UNIT_TYPES = ["KING", "ASSASSIN", "WARRIOR", "MAGE"]
-$W = 15
-$H = 15
+$W = 9
+$H = 9
 $MAX_TURNS = 1000
 $id_cnt = 0
 
@@ -28,30 +28,10 @@ class Unit
       @atk = 20
       @x = ($W - 1) / 2
       @y = (@TEAM == 1 ? 0 : $H - 1)
-    elsif (@TYPE == "ASSASSIN")
-      rand_result = Random.rand(-1.0..1.0)
-      rand_sum = rand_result
-      @hp = 17 + 3 * _level + (5 * rand_result).round
-      rand_result = Random.rand(-1.0..1.0)
-      rand_sum += rand_result
-      @atk = 17 + 3 * _level  + (5 * rand_result).round
-      @value = (rand_sum + 3.0).round
-    elsif (@TYPE == "WARRIOR")
-      rand_result = Random.rand(-1.0..1.0)
-      rand_sum = rand_result
-      @hp = 43 + 7 * _level + (10 * rand_result).round
-      rand_result = Random.rand(-1.0..1.0)
-      rand_sum += rand_result
-      @atk = 9 + _level + (3 * rand_result).round
-      @value = (rand_sum + 3.0).round
-    elsif (@TYPE == "MAGE")
-      rand_result = Random.rand(-1.0..1.0)
-      rand_sum = rand_result
-      @hp = 12 + 3 * _level + (5 * rand_result).round
-      rand_result = Random.rand(-1.0..1.0)
-      rand_sum += rand_result
-      @atk = 3 + 2 * _level + (3 * rand_result).round
-      @value = (rand_sum + 3.0).round
+    else
+      @hp = 43 + 7 * _level
+      @atk = 7 + 3 * _level
+      @value = Random.rand(2..4)
     end
   end
 
@@ -89,7 +69,7 @@ class Game
     @commands = [command1, command2]
     @players = [Player.new(0), Player.new(1)]
     for i in 0..1 do
-      @players[i].shop = Array.new(3).map{Unit.new(i)}
+      @players[i].shop = (0...3).to_a.map{|j|Unit.new(i,$UNIT_TYPES[j+1])}
     end
     @field = Array.new($H).map{Array.new($W, nil)}
     for i in 0..1 do
@@ -112,11 +92,11 @@ class Game
         for turn in 0...$MAX_TURNS do
           # gold処理
           for i in 0..1 do
-            @players[i].gold += 1 + (@players[i].gold / 10.0).floor + @players[i].kill
+            @players[i].gold += 1 + [5, (@players[i].gold / 10.0).floor].max + @players[i].kill
           end
 
           # dump
-          @dump_data.append(Marshal.load(Marshal.dump(@players)))
+          @dump_data.push(Marshal.load(Marshal.dump(@players)))
 
           # input&output
           @output = [nil, nil]
@@ -127,37 +107,35 @@ class Game
               @stdins[i].puts @players[i].time_left.to_i
               @stdins[i].puts "#{@players[i].level} #{@players[i ^ 1].level}"
               @stdins[i].puts "#{@players[i].gold} #{@players[i ^ 1].gold}"
-              puts "in:#{turn}"
-              puts "in:#{@players[i].time_left.to_i}"
-              puts "in:#{@players[i].level} #{@players[i ^ 1].level}"
-              puts "in:#{@players[i].gold} #{@players[i ^ 1].gold}"
+              puts "#{@names[i]} in:#{turn}"
+              puts "#{@names[i]} in:#{@players[i].time_left.to_i}"
+              puts "#{@names[i]} in:#{@players[i].level} #{@players[i ^ 1].level}"
+              puts "#{@names[i]} in:#{@players[i].gold} #{@players[i ^ 1].gold}"
               for j in 0...3 do
                 @stdins[i].puts @players[i].shop[j].shopStr
-                tmp_s = @players[i].shop[j].shopStr
-                puts "in:#{tmp_s}"
+                puts "#{@names[i]} in:#{@players[i].shop[j].shopStr}"
               end
               @stdins[i].puts @players[i].units.length
-              puts "in:#{@players[i].units.length}"
+              puts "#{@names[i]} in:#{@players[i].units.length}"
               for j in 0...@players[i].units.length do
                 @stdins[i].puts @players[i].units[j].print(i)
-                tmp_s = @players[i].units[j].print(i)
-                puts "in:#{tmp_s}"
+                puts "#{@names[i]} in:#{@players[i].units[j].print(i)}"
               end
               @stdins[i].puts @players[i ^ 1].units.length
-              puts "in:#{@players[i ^ 1].units.length}"
+              puts "#{@names[i]} in:#{@players[i ^ 1].units.length}"
               for j in 0...@players[i ^ 1].units.length do
                 @stdins[i].puts @players[i ^ 1].units[j].print(i)
-                puts "in:#{@players[i ^ 1].units[j].print(i)}"
+                puts "#{@names[i]} in:#{@players[i ^ 1].units[j].print(i)}"
               end
               #output
               command = @stdouts[i].gets.chomp
-              puts "out:#{command}"
+              puts "#{@names[i]} out:#{command}"
               n = @stdouts[i].gets.chomp.to_i
-              puts "out:#{n}"
+              puts "#{@names[i]} out:#{n}"
               dat = Array.new(n, nil)
               for j in 0...n do
                 id, x, y = @stdouts[i].gets.chomp.split(" ").map(&:to_i)
-                puts "out:#{id} #{x} #{y}"
+                puts "#{@names[i]} out:#{id} #{x} #{y}"
                 if (i == 1 && x != -1)
                   x = $W - 1 - x
                   y = $H - 1 - y
@@ -176,94 +154,44 @@ class Game
             list = @output[i]["command"].chomp.split(" ")
             if (list.length == 0)
                 next
-            end
-            if (list[0] == "reset" && list.length <= 4)
-              if (@players[i].gold >= 2)
-                @players[i].gold -= 2
-                for j in 1..3 do
-                  if (list.length > j)
-                    @players[i].shop[j-1] = Unit.new(i, list[j], @players[i].level)
-                  else
-                    @players[i].shop[j-1] = Unit.new(i, nil, @players[i].level)
-                  end
-                end
-              end
-            elsif (list[0] == "buy" && list.length == 2)
+            elsif (list[0] == "buy" && list.length == 4)
               id = list[1].to_i
-              for j in 0...3 do
-                if (id == @players[i].shop[j].ID && @players[i].gold >= @players[i].shop[j].value)
-                  @players[i].gold -= @players[i].shop[j].value
-                  @players[i].units.push(@players[i].shop[j])
-                  @players[i].shop[j] = Unit.new(i, nil, @players[i].level)
-                  break
-                end
-              end
-            elsif (list[0] == "move" && list.length == 4)
-              id = list[1].to_i
-              x = list[2].to_i
-              y = list[3].to_i
-              if (i == 1 && x != -1)
-                x = $W - 1 - x
-                y = $H - 1 - y
-              end
-              unit = nil
-              for j in 0...@players[i].units.length do
-                if (id == @players[i].units[j].ID)
-                  unit = @players[i].units[j]
-                  break
-                end
-              end
-              if (!unit.nil?)
-                if (0<=x&&x<$W&&0<=y&&y<$H&&@field[y][x].nil?)
-                  if (unit.x==-1&&unit.y==-1 && @players[i].field_num < 2 + @players[i].level)
-                    king = @players[i].units[0]
-                    if [(king.x-x).abs,(king.y-y).abs].max<=3
-                     unit.x = x
-                      unit.y = y
-                      @field[y][x] = unit
-                      @players[i].field_num += 1
-                      ignore_list.push(unit)
-                    end
+              to_x = list[2].to_i
+              to_y = list[3].to_i
+              if (to_x.between?(0, $W - 1) && to_y.between?(0, $H - 1) && [to_x - @players[i].units[0].x, to_y - @players[i].units[0].y].max <= 3)
+                for j in 0...3 do
+                  if (id == @players[i].shop[j].ID && @players[i].gold >= @players[i].shop[j].value)
+                    @players[i].gold -= @players[i].shop[j].value
+                    @players[i].shop[j].x = to_x
+                    @players[i].shop[j].y = to_y
+                    @players[i].units.push(@players[i].shop[j])
+                    ignore_list.push(@players[i].shop[j])
+                    @players[i].shop[j] = Unit.new(i, @players[i].shop[j].TYPE, @players[i].level)
+                    break
                   end
-                elsif (x==-1&&y==-1&&unit.x>=0&&unit.TYPE != "KING")
-                  @field[unit.y][unit.x] = nil
-                  unit.x = -1
-                  unit.y = -1
-                  @players[i].field_num -= 1
                 end
               end
             elsif (list[0] == "evolve" && list.length == 4)
               materials = []
               ids = list[1..3].map(&:to_i)
-              for j in 0...@players[i].units.length do
-                if (ids.include?(@players[i].units[j].ID))
-                  materials.push(j)
+              for j in 0...3 do
+                material = @players[i].units.find{|u| u.ID == ids[j]}
+                if(material)
+                  materials.push(material)
                 end
               end
               if (materials.length == 3)
                 ok = true
                 for j in 0...3 do
-                  if (@players[i].units[materials[j]].TYPE!=@players[i].units[materials[0]].TYPE)
-                    ok = false
-                    break
-                  elsif (@players[i].units[materials[j]].x != -1 || @players[i].units[materials[j]].y != -1)
+                  if (materials[j].TYPE != materials[0].TYPE)
                     ok = false
                     break
                   end
                 end
                 if (ok)
-                  new_unit = Unit.new(i, @players[i].units[materials[0]].TYPE)
-                  sum_dat = [0, 0]
-                  for j in 0...3 do
-                    sum_dat[0] += @players[i].units[materials[j]].hp
-                    sum_dat[1] += @players[i].units[materials[j]].atk
-                  end
-                  new_unit.hp = (sum_dat[0] * 2 / 3.0).round
-                  new_unit.atk = (sum_dat[1] * 2 / 3.0).round
-                  for j in 0...3 do
-                    @players[i].units.delete_at(materials[j])
-                  end
-                  @players[i].units.push(new_unit)
+                  materials[0].hp = (materials.map{|u| u.hp }.sum / 3.5 * 2).to_i
+                  materials[0].atk = (materials.map{|u| u.atk }.sum / 3.5 * 2).to_i
+                  @players[i].units.delete_if{|u| materials[1..2].include?(u)}
                 end
               end
             elsif (list == ["levelup"])
@@ -293,7 +221,7 @@ class Game
             for j in 0...@players[move_dat[i]["team"]].units.length do
               unit = @players[move_dat[i]["team"]].units[j]
               if (unit.ID == move_dat[i]["id"])
-                if (unit.x != -1 && !ignore_list.include?(unit))
+                if (!ignore_list.include?(unit))
                   dist = [(unit.x - move_dat[i]["x"]).abs, (unit.y - move_dat[i]["y"]).abs].max
                   if (dist == 1 && @field[move_dat[i]["y"]][move_dat[i]["x"]].nil?)
                     @field[unit.y][unit.x] = nil
@@ -313,41 +241,31 @@ class Game
               if @field[i][j].nil? || ignore_list.include?(@field[i][j])
                 next
               end
-              if ["KING", "MAGE"].include?(@field[i][j].TYPE)
-                for ty in i-3..i+3 do
+              if (@field[i][j].TYPE == "KING")
+                for ty in (i-3)..(i+3) do
                   if ty<0 || ty>=$H
                     next
                   end
-                  for tx in j-3..j+3 do
+                  for tx in (j-3)..(j+3) do
                     if tx<0 || tx>=$W
                       next
                     end
                     if (@field[ty][tx].nil? || @field[ty][tx].TEAM == @field[i][j].TEAM)
                       next
                     end
-                    if @field[i][j].TYPE == "MAGE"
-                      if @field[ty][tx].TYPE == "WARRIOR"
-                        @field[ty][tx].hp -= @field[i][j].atk * 2
-                      elsif @field[ty][tx].TYPE == "ASSASSIN"
-                        @field[ty][tx].hp -= (@field[i][j].atk / 2.0).ceil
-                      else
-                        @field[ty][tx].hp -= @field[i][j].atk
-                      end
-                    else
-                      @field[ty][tx].hp -= @field[i][j].atk
-                    end
+                    @field[ty][tx].hp -= @field[i][j].atk
                   end
                 end
               else
-                for ty in i-1..i+1 do
-                  for tx in j-1..j+1 do
+                for ty in (i-1)..(i+1) do
+                  for tx in (j-1)..(j+1) do
                     if ty < 0 || ty >= $H || tx < 0 || tx >= $W
                       next
                     end
                     if (@field[ty][tx].nil? || @field[ty][tx].TEAM == @field[i][j].TEAM)
                       next
                     end
-                    if @field[i][j].TYPE == "ASSASSIN"
+                    if (@field[i][j].TYPE == "ASSASSIN")
                       if @field[ty][tx].TYPE == "MAGE"
                         @field[ty][tx].hp -= @field[i][j].atk * 2
                       elsif @field[ty][tx].TYPE == "WARRIOR"
@@ -355,10 +273,18 @@ class Game
                       else
                         @field[ty][tx].hp -= @field[i][j].atk
                       end
-                    else
+                    elsif (@field[i][j].TYPE == "WARRIOR")
                       if @field[ty][tx].TYPE == "ASSASSIN"
                         @field[ty][tx].hp -= @field[i][j].atk * 2
                       elsif @field[ty][tx].TYPE == "MAGE"
+                        @field[ty][tx].hp -= (@field[i][j].atk / 2.0).ceil
+                      else
+                        @field[ty][tx].hp -= @field[i][j].atk
+                      end
+                    else
+                      if (@field[ty][tx].TYPE == "WARRIOR")
+                        @field[ty][tx].hp -= @field[i][j].atk * 2
+                      elsif (@field[ty][tx].TYPE == "ASSASSIN")
                         @field[ty][tx].hp -= (@field[i][j].atk / 2.0).ceil
                       else
                         @field[ty][tx].hp -= @field[i][j].atk
@@ -380,13 +306,11 @@ class Game
                   dead[i] = true
                 end
                 @players[i].units.delete_at(j)
-                j -= 1
                 @players[i^1].kill += 1
               end
             }
           end
 
-          # finish判定(TODO)
           for i in 0..1 do
             if @players[i].time_left <= 0
               dead[i] = true
@@ -415,9 +339,9 @@ class Game
       end
     end
     @dump_data.push(Marshal.load(Marshal.dump(@players)))
-    # jsonへ出力
+    # logへ出力
     p @result
-    filename = "visualizer/log/" + (DateTime.now).strftime("%Y%m%d%H%M%S")+"-#{@names[0]}-#{@names[1]}.json"
+    filename = "visualizer/log/" + (DateTime.now).strftime("%Y%m%d%H%M%S")+"-#{@names[0]}-#{@names[1]}.log"
     open(filename, "w") do |file|
       file.puts "#{@names[0]} #{@names[1]}"
       file.puts "#{@result[0]} #{@result[1]}"
